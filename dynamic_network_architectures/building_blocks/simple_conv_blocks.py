@@ -23,7 +23,7 @@ class ConvDropoutNormReLU(nn.Module):
                  dropout_op_kwargs: dict = None,
                  nonlin: Union[None, Type[torch.nn.Module]] = None,
                  nonlin_kwargs: dict = None,
-                 nonlin_first: bool = False
+                 layer_oder: str = "CNAD"
                  ):
         super(ConvDropoutNormReLU, self).__init__()
         self.input_channels = input_channels
@@ -37,7 +37,7 @@ class ConvDropoutNormReLU(nn.Module):
         if nonlin_kwargs is None:
             nonlin_kwargs = {}
 
-        ops = []
+        ops = {}
 
         self.conv = conv_op(
             input_channels,
@@ -48,24 +48,22 @@ class ConvDropoutNormReLU(nn.Module):
             dilation=1,
             bias=conv_bias,
         )
-        ops.append(self.conv)
+        ops["C"] = self.conv
 
         if dropout_op is not None:
             self.dropout = dropout_op(**dropout_op_kwargs)
-            ops.append(self.dropout)
+            ops["D"] = self.dropout
 
         if norm_op is not None:
             self.norm = norm_op(output_channels, **norm_op_kwargs)
-            ops.append(self.norm)
+            ops["N"] = self.norm
 
         if nonlin is not None:
             self.nonlin = nonlin(**nonlin_kwargs)
-            ops.append(self.nonlin)
+            ops["A"] = self.nonlin
 
-        if nonlin_first and (norm_op is not None and nonlin is not None):
-            ops[-1], ops[-2] = ops[-2], ops[-1]
-
-        self.all_modules = nn.Sequential(*ops)
+        # Order operations based on layer_order
+        self.all_modules = nn.Sequential(*[ops[i] for i in layer_oder if i in ops])
 
     def forward(self, x):
         return self.all_modules(x)
