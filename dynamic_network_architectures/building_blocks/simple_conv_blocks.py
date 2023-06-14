@@ -23,7 +23,7 @@ class ConvDropoutNormReLU(nn.Module):
                  dropout_op_kwargs: dict = None,
                  nonlin: Union[None, Type[torch.nn.Module]] = None,
                  nonlin_kwargs: dict = None,
-                 layer_oder: str = "CNAD"
+                 layer_order: str = "CNAD"
                  ):
         super(ConvDropoutNormReLU, self).__init__()
         self.input_channels = input_channels
@@ -63,7 +63,7 @@ class ConvDropoutNormReLU(nn.Module):
             ops["A"] = self.nonlin
 
         # Order operations based on layer_order
-        self.all_modules = nn.Sequential(*[ops[i] for i in layer_oder if i in ops])
+        self.all_modules = nn.Sequential(*[ops[i] for i in layer_order if i in ops])
 
     def forward(self, x):
         return self.all_modules(x)
@@ -91,7 +91,7 @@ class StackedConvBlocks(nn.Module):
                  dropout_op_kwargs: dict = None,
                  nonlin: Union[None, Type[torch.nn.Module]] = None,
                  nonlin_kwargs: dict = None,
-                 nonlin_first: bool = False
+                 layer_order: str = "CNAD"
                  ):
         """
 
@@ -117,12 +117,12 @@ class StackedConvBlocks(nn.Module):
         self.convs = nn.Sequential(
             ConvDropoutNormReLU(
                 conv_op, input_channels, output_channels[0], kernel_size, initial_stride, conv_bias, norm_op,
-                norm_op_kwargs, dropout_op, dropout_op_kwargs, nonlin, nonlin_kwargs, nonlin_first
+                norm_op_kwargs, dropout_op, dropout_op_kwargs, nonlin, nonlin_kwargs, layer_order
             ),
             *[
                 ConvDropoutNormReLU(
                     conv_op, output_channels[i - 1], output_channels[i], kernel_size, 1, conv_bias, norm_op,
-                    norm_op_kwargs, dropout_op, dropout_op_kwargs, nonlin, nonlin_kwargs, nonlin_first
+                    norm_op_kwargs, dropout_op, dropout_op_kwargs, nonlin, nonlin_kwargs, layer_order
                 )
                 for i in range(1, num_convs)
             ]

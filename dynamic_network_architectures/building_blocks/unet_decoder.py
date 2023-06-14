@@ -13,7 +13,7 @@ class UNetDecoder(nn.Module):
                  encoder: Union[PlainConvEncoder, ResidualEncoder],
                  num_classes: int,
                  n_conv_per_stage: Union[int, Tuple[int, ...], List[int]],
-                 deep_supervision, nonlin_first: bool = False):
+                 deep_supervision, layer_order: str = "CNAD"):
         """
         This class needs the skips of the encoder as input in its forward.
 
@@ -58,7 +58,7 @@ class UNetDecoder(nn.Module):
             stages.append(StackedConvBlocks(
                 n_conv_per_stage[s-1], encoder.conv_op, 2 * input_features_skip, input_features_skip,
                 encoder.kernel_sizes[-(s + 1)], 1, encoder.conv_bias, encoder.norm_op, encoder.norm_op_kwargs,
-                encoder.dropout_op, encoder.dropout_op_kwargs, encoder.nonlin, encoder.nonlin_kwargs, nonlin_first
+                encoder.dropout_op, encoder.dropout_op_kwargs, encoder.nonlin, encoder.nonlin_kwargs, layer_order
             ))
 
             # we always build the deep supervision outputs so that we can always load parameters. If we don't do this

@@ -31,11 +31,8 @@ class PlainConvUNet(nn.Module):
                  nonlin: Union[None, Type[torch.nn.Module]] = None,
                  nonlin_kwargs: dict = None,
                  deep_supervision: bool = False,
-                 nonlin_first: bool = False
+                 layer_order: str = "CNAD"
                  ):
-        """
-        nonlin_first: if True you get conv -> nonlin -> norm. Else it's conv -> norm -> nonlin
-        """
         super().__init__()
         if isinstance(n_conv_per_stage, int):
             n_conv_per_stage = [n_conv_per_stage] * n_stages
@@ -51,9 +48,9 @@ class PlainConvUNet(nn.Module):
         self.encoder = PlainConvEncoder(input_channels, n_stages, features_per_stage, conv_op, kernel_sizes, strides,
                                         n_conv_per_stage, conv_bias, norm_op, norm_op_kwargs, dropout_op,
                                         dropout_op_kwargs, nonlin, nonlin_kwargs, return_skips=True,
-                                        nonlin_first=nonlin_first)
+                                        layer_order=layer_order)
         self.decoder = UNetDecoder(self.encoder, num_classes, n_conv_per_stage_decoder, deep_supervision,
-                                   nonlin_first=nonlin_first)
+                                   layer_order=layer_order)
 
     def forward(self, x):
         skips = self.encoder(x)
